@@ -1,12 +1,13 @@
 let canvas;
 
+const COMP = 'computer';
+const PLAYER = 'player';
 const MENU = 'menu';
 const PLAYING = 'playing';
 const FINISHED = 'finished';
 
 class Button{
-
-constructor(args, caller){
+  constructor(args, caller){
 
     let id = args.id || 0;
     let txt = args.txt || '';
@@ -29,7 +30,7 @@ constructor(args, caller){
     if(mouseX > pos.x - size.x/2 && mouseX < pos.x+size.x/2){
       if(mouseY > pos.y - size.y/2 && mouseY < pos.y+size.y/2){
         if(mouseIsPressed){
-          callback(id, caller);
+          callback(id, caller, Date.now());
         }
       }
     }
@@ -44,35 +45,72 @@ class Game{
       [PLAYING] : this.playing,
       [FINISHED] : this.finished
     }
+    this.sequence = [];
+    this.player_sequence = [];
+    this.sequence_turn = COMP;
+    this.onSequenceData = {
+      seq_playing: true,
+      seq_index: 0,
+      seq_length: 0,
+      seq_lastDisplay: 0,
+      seq_delay: 500,
+      seq_playTime:0,
+    };
   }
+  
   menu(self){
     new Button({txt:'Start',
                 size:{x:width*0.2,y:height*0.1},
-                callback: function(id, caller){
+                callback: function(id, caller, timestamp){
                   self.start();
+                  console.log(timestamp);
                 }, 
                 color:{r:3, g:169, b:252},
                 pos: {x:width/2,y:height/2}
                },self);
   }
-  playing(self){
-    
+  
+  playing_sequence(self){
     
   }
+  
+  playing_player(self){
+    
+  }
+  
+  playing(self){
+    switch(self.sequence_turn){
+      case COMP:
+        self.playing_sequence(self);
+        break;
+      case PLAYER:
+        self.playing_player(self);
+        break;
+      default:
+        break;
+    }   
+  }
+  
   finished(self){
     
   }
+  
   start(){
     if(this.current_mode == MENU || this.current_mode == FINISHED){
       this.current_mode = PLAYING;
     }
   }
+  
   stop(){
-    
+    if(this.current_mode == PLAYING){
+      this.current_mode = MENU;
+    }
   }
+  
   check(){
     
   }
+  
   run_mode(mode){
     this.modes[mode](this);
   }
@@ -96,10 +134,12 @@ function setup(){
   canvas = createCanvas(c_size, c_size);
   canvas.parent('canvas_holder');
 }
+
 function draw(){
   background(51);
   game.loop();
 }
+
 function windowResized(){
   let c_size = 0;
   if(windowWidth>windowHeight){
@@ -109,4 +149,3 @@ function windowResized(){
   }
   resizeCanvas(c_size, c_size);
 }
-
