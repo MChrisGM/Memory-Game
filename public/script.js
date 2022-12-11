@@ -42,6 +42,7 @@ class Game{
     this.sq = x*y;
     this.rows = y;
     this.cols = x;
+    this.score = 1;
     this.current_mode = MENU;
     this.modes = {
       [MENU] : this.menu,
@@ -121,7 +122,8 @@ class Game{
         self.onSequenceData.player_completed = true;
         self.onSequenceData.seq_index = 0;
         self.player_sequence = [];
-        self.onSequenceData.seq_lastDisplay = Date.now();
+        self.onSequenceData.seq_lastDisplay = Date.now()+750;
+        self.score++;
       }
     }
     this.onSequenceData.seq_playing = false;
@@ -173,6 +175,12 @@ class Game{
                 pos: {x:(0.5+indx)*width/self.cols,y:(0.5+indy)*height/self.rows}
                },self);
     }
+
+    textAlign(CENTER);
+    textSize(30);
+    fill(0);
+    text(self.score,width/2,(height/2)+15);
+    
   }
   
   finished(self){
