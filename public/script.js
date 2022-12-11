@@ -231,7 +231,7 @@ class Game{
         
         fill(255,255,255);
         textSize(width/40);
-        text("Highlight",(0.5+x)*width/4,(0.19+y)*height/4);
+        text("Highlight",(0.5+x)*width/4,(0.18+y)*height/4);
         
         
         x++;
