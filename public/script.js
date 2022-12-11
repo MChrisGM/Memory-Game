@@ -6,13 +6,93 @@ const MENU = 'menu';
 const PLAYING = 'playing';
 const FINISHED = 'finished';
 
-const COLOR = {
-  BACKGROUND:{r:17, g:27, b:30},
-  A:{r:47, g:76, b:88},
-  B:{r:99, g:165, b:131},
-  C:{r:110, g:147, b:214},
-  TEXT:{r:228, g:219, b:217},
-};
+const palette = {
+  480: {
+    BACKGROUND: "#343631",
+    BTN: "#366a82",
+    CLICK: "#89d0ee",
+    HIGHLIGHT: "#926f47",
+    TEXT: "#ddf3fe",
+  },
+  4240:{
+    BACKGROUND: "#111b1e",
+    BTN: "#2f4c58",
+    HIGHLIGHT: "#63a583",
+    CLICK: "#6e93d6",
+    TEXT: "#e4dbd9",
+  },
+  4567:{
+    BACKGROUND: "#02315E",
+    BTN: "#00457E",
+    CLICK: "#2F70AF",
+    HIGHLIGHT: "#806491",
+    TEXT: "#B9848C",
+  },
+  4542:{
+    BACKGROUND: "#0C151C",
+    BTN: "#16354D",
+    HIGHLIGHT: "#6B99C3",
+    CLICK: "#D2D2D4",
+    TEXT: "#E4E5EA",
+  },
+  4558:{
+    BACKGROUND: "#513C2F",
+    BTN: "#5A7A0A",
+    HIGHLIGHT: "#83D350",
+    CLICK: "#FAB036",
+    TEXT: "#FDD48A",
+  },
+  4570:{
+    BACKGROUND: "#212517",
+    CLICK: "#DED3A6",
+    HIGHLIGHT: "#759242",
+    BTN: "#374709",
+    TEXT: "#F2F2EF",
+  },
+  4564:{
+    BACKGROUND: "#680003",
+    CLICK: "#F5704A",
+    BTN: "#BC0000",
+    HIGHLIGHT: "#828D00",
+    TEXT: "#EFB9AD",
+  },
+  4562:{
+    BACKGROUND: "#2D4628",
+    CLICK: "#FFA570",
+    BTN: "#E83100",
+    HIGHLIGHT: "#FF6933",
+    TEXT: "#FAD074",
+  },
+  4556:{
+    BACKGROUND: "#100102",
+    CLICK: "#EA592A",
+    BTN: "#4B1E19",
+    HIGHLIGHT: "#C0587E",
+    TEXT: "#FC8B5E",
+  },
+  328: {
+    BACKGROUND: "#1f1d22",
+    CLICK: "#f49b0d",
+    BTN: "#554b54",
+    HIGHLIGHT: "#cf5fa9",
+    TEXT: "#baa6a7",
+  },
+  1195:{
+    BACKGROUND: "#020A12",
+    CLICK: "#075B7B",
+    BTN: "#002E3F",
+    HIGHLIGHT: "#501B2D",
+    TEXT: "#F6386D",
+  },
+  4549:{
+    BACKGROUND: "#081012",
+    HIGHLIGHT: "#E0AB9A",
+    BTN: "#4D8FC3",
+    CLICK: "#EF8A84",
+    TEXT: "#FFF3EB",
+  },
+}
+var COLOR = palette[4549];
 
 class Button{
   constructor(args, caller){
@@ -23,15 +103,15 @@ class Button{
     let pos = args.pos || {x:0,y:0};
     let size = args.size || {x:10,y:10};
     let shape = args.shape || rect;
-    let tcolor = args.tcolor || {r:255,g:255,b:255}
-    let scolor = args.color || {r:0,g:0,b:0};
+    let tcolor = args.tcolor || color(255,255,255);
+    let scolor = args.color || color(0,0,0);
     let callback = args.callback || function(){};
     
     rectMode(CENTER);
-    fill(scolor.r,scolor.g,scolor.b);
+    fill(scolor);
     shape(pos.x,pos.y,size.x,size.y);
     
-    fill(tcolor.r,tcolor.g,tcolor.b);
+    fill(tcolor);
     textAlign(CENTER);
     textSize(txtSize);
     text(txt,pos.x,pos.y+Math.floor(txtSize/2)-3);
@@ -61,13 +141,16 @@ class Game{
     this.player_sequence = [];
     this.sequence_turn = COMP;
     this.onSequenceData = {
-      seq_playing: true,
+      player_completed: true,
+      seq_playing: true,      
       seq_index: 0,
       seq_length: 0,
       seq_lastDisplay: 0,
-      seq_delay: 500,
-      seq_playTime:1000,
-      player_completed: true,
+      seq_holdTime: 500,
+      seq_inBetweenTime: 600,
+      seq_startAfterMenuTime: 300,
+      seq_startAfterSequenceTime: 500,
+      btn_debounce: 200,
     };
     this.button_status = [];
     for(let i=0;i<this.sq;i++){
@@ -82,12 +165,12 @@ class Game{
     stroke(255);
     strokeWeight(3);
     rectMode(CENTER);
-    rect(width/2,height/2,width,height);
+    // rect(width/2,height/2,width,height);
     strokeWeight(0.5);
     stroke(0);
     new Button({txt:'Start',
                 txtSize:width/20,
-                tcolor:COLOR.TEXT,
+                tcolor:color(COLOR.TEXT),
                 size:{x:width*0.2,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   for(let i=0;i<self.sq;i++){
@@ -96,7 +179,7 @@ class Game{
                   self.onSequenceData.seq_lastDisplay = timestamp+2000;
                   self.start();
                 }, 
-                color:COLOR.B,
+                color:color(COLOR.BTN),
                 pos: {x:width/2,y:height/2}
                },self);
   }
@@ -110,8 +193,15 @@ class Game{
   }
   
   playing_sequence(self){
-    document.getElementById("memorize").className = "highlight-container";
-    document.getElementById("repeat").className = "";
+    if(document.getElementById("repeat").className == "highlight-container"){
+      if(Date.now() - self.onSequenceData.seq_lastDisplay > self.onSequenceData.seq_startAfterMenuTime){
+        document.getElementById("memorize").className = "highlight-container";
+        document.getElementById("repeat").className = "";
+      }
+    }else{
+      document.getElementById("memorize").className = "highlight-container";
+      document.getElementById("repeat").className = "";
+    }
     if(self.onSequenceData.player_completed){
       self.sequence.push(getRandomInt(self.sq));
       self.onSequenceData.seq_length++;
@@ -121,8 +211,8 @@ class Game{
     let idx = self.onSequenceData.seq_index;
     let len = self.onSequenceData.seq_length;
     let last = self.onSequenceData.seq_lastDisplay;
-    let delay = self.onSequenceData.seq_delay;
-    let playTime = self.onSequenceData.seq_playTime;
+    let delay = self.onSequenceData.seq_holdTime;
+    let playTime = self.onSequenceData.seq_inBetweenTime;
     if(Date.now() - last > playTime){
       if(len-1 >= idx){
         this.click(self.sequence[idx]);
@@ -145,7 +235,7 @@ class Game{
         self.onSequenceData.player_completed = true;
         self.onSequenceData.seq_index = 0;
         self.player_sequence = [];
-        self.onSequenceData.seq_lastDisplay = Date.now()+750;
+        self.onSequenceData.seq_lastDisplay = Date.now()+self.onSequenceData.seq_startAfterSequenceTime;
         self.score++;
       }
     }
@@ -170,25 +260,25 @@ class Game{
       let indx = i%self.cols;
       let indy = Math.floor(i/self.rows);
 
-      if (Date.now() - self.button_status[i].last_clicked > self.onSequenceData.seq_delay){
+      if (Date.now() - self.button_status[i].last_clicked > self.onSequenceData.seq_holdTime){
         self.button_status[i].clicked = false;
       }else{
         self.button_status[i].clicked = true;
       }
 
-      let c = COLOR.C;
+      let c = color(COLOR.BTN);
       if(self.button_status[i].clicked){
-        c = {r:255, g:255, b:255};
+        c = color(COLOR.CLICK);
       }
       
       new Button({
                 id: i,
                 size:{x:(width/self.cols)-(width/(100*self.cols)),y:(height/self.rows)-(height/(100*self.rows))},
-                tcolor:COLOR.TEXT,
+                tcolor:color(COLOR.TEXT),
                 callback: function(id, caller, timestamp){
                   if(!self.onSequenceData.seq_playing){
                     if(!self.button_status[i].clicked){
-                      if(timestamp - self.button_status[i].last_clicked > 250){
+                      if(timestamp - self.button_status[i].last_clicked > self.onSequenceData.btn_debounce){
                         self.button_status[i].last_clicked = timestamp;
                         self.button_status[i].clicked = true;
                         self.player_sequence.push(id);
@@ -204,7 +294,7 @@ class Game{
     textAlign(CENTER);
     let txtSize = 3*width/20;
     textSize(txtSize);
-    fill(objRGB(COLOR.TEXT));
+    fill(color(COLOR.TEXT));
     stroke(0);
     text(self.score,width/2,(height/2)+txtSize/2);
     
@@ -213,12 +303,12 @@ class Game{
   finished(self){
     new Button({txt:'Play Again',
                 txtSize:width/20,
-                tcolor:{r:228, g:219, b:217},
+                tcolor:color(COLOR.TEXT),
                 size:{x:width*0.3,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   game = new Game();
                 }, 
-                color:{r:99, g:165, b:131},
+                color: color(COLOR.BTN),
                 pos: {x:width/2,y:height/2}
                },self);
     
@@ -256,11 +346,14 @@ function setup(){
   let c_size = returnSize();
   canvas = createCanvas(c_size, c_size);
   canvas.parent('canvas_holder');
-  document.querySelector(':root').style.setProperty('--highlight', objRGB(COLOR.B).toString('#rrggbb'));
+  document.querySelector(':root').style.setProperty('--highlight', color(COLOR.HIGHLIGHT).toString('#rrggbb'));
+  document.querySelector(':root').style.setProperty('--background', color(COLOR.BACKGROUND).toString('#rrggbb'));
 }
 
 function draw(){
-  background(objRGB(COLOR.BACKGROUND));
+  background(color(COLOR.BACKGROUND));
+  document.querySelector(':root').style.setProperty('--highlight', color(COLOR.HIGHLIGHT).toString('#rrggbb'));
+  document.querySelector(':root').style.setProperty('--background', color(COLOR.BACKGROUND).toString('#rrggbb'));
   game.loop();
 }
 
