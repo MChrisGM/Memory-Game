@@ -76,6 +76,8 @@ class Game{
   }
   
   menu(self){
+    document.getElementById("memorize").className = "";
+    document.getElementById("repeat").className = "";
     new Button({txt:'Start',
                 txtSize:width/20,
                 tcolor:COLOR.TEXT,
@@ -101,6 +103,8 @@ class Game{
   }
   
   playing_sequence(self){
+    document.getElementById("memorize").className = "highlight-container";
+    document.getElementById("repeat").className = "";
     if(self.onSequenceData.player_completed){
       self.sequence.push(getRandomInt(self.sq));
       self.onSequenceData.seq_length++;
@@ -124,6 +128,8 @@ class Game{
   }
   
   playing_player(self){
+    document.getElementById("memorize").className = "";
+    document.getElementById("repeat").className = "highlight-container";
     if(!areEqual(this.sequence, this.player_sequence)){
       this.stop();
     }else{
@@ -242,6 +248,7 @@ function setup(){
   let c_size = returnSize();
   canvas = createCanvas(c_size, c_size);
   canvas.parent('canvas_holder');
+  document.querySelector(':root').style.setProperty('--highlight', objRGB(COLOR.B).toString('#rrggbb'));
 }
 
 function draw(){

@@ -12,6 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/p5.min.js" integrity="sha512-WJXVjqeINVpi5XXJ2jn0BSCfp0y80IKrYh731gLRnkAS9TKc5KNt/OfLtu+fCueqdWniouJ1ubM+VI/hbo7POQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <style>
+      :root {
+        --highlight: #ffd500;
+      }
       body{
           overflow: hidden;
         background-color:rgb(17, 27, 30);
@@ -42,6 +45,29 @@
         -ms-user-select: none;
         user-select: none;
       }
+
+      .highlight-container, .highlight {
+  position: relative;
+}
+
+.highlight-container {
+  display: inline-block;
+}
+.highlight-container:before {
+  content: " ";
+  display: block;
+  height: 90%;
+  width: 100%;
+  margin-left: -3px;
+  margin-right: -3px;
+  position: absolute;
+  background: var(--highlight);
+  transform: rotate(2deg);
+  top: -1px;
+  left: -1px;
+  border-radius: 20% 25% 20% 24%;
+  padding: 10px 3px 3px 10px;
+}
     </style>
 
     <title>Benchmark!</title>
@@ -50,7 +76,13 @@
     <div class="inner">
       <h1>Sequence Memory</h1>
       <div id = "game">
-        <h3>Memorize and repeat the sequence:</h3>
+        <div>
+
+          
+          
+          <h3><span id="memorize" class=""><span class="highlight">Memorize</span></span> and <span id="repeat" class=""><span class="highlight">repeat</span></span> the sequence</h3>
+<!--           <h3 id="memorize">Memorize</h3> <h3>and</h3> <h3 id="repeat"> repeat</h3> <h3>the sequence:</h3> -->
+        </div>
         <div id="canvas_holder"></div>
       </div>
     </div>
