@@ -92,7 +92,8 @@ const palette = {
     TEXT: "#FFF3EB",
   },
 }
-var COLOR = palette[4549];
+var COLOR;
+let lastClicked = 0;
 
 class Button{
   constructor(args, caller){
@@ -132,6 +133,7 @@ class Game{
     this.sq = this.cols*this.rows;
     this.score = 1;
     this.current_mode = MENU;
+    this.colorMenu = false;
     this.modes = {
       [MENU] : this.menu,
       [PLAYING] : this.playing,
@@ -168,20 +170,77 @@ class Game{
     // rect(width/2,height/2,width,height);
     strokeWeight(0.5);
     stroke(0);
-    new Button({txt:'Start',
+    if(!self.colorMenu){
+      new Button({txt:'Start',
                 txtSize:width/20,
                 tcolor:color(COLOR.TEXT),
                 size:{x:width*0.2,y:height*0.1},
                 callback: function(id, caller, timestamp){
-                  for(let i=0;i<self.sq;i++){
-                    self.button_status[i].last_clicked=timestamp-900;
+                  if(Date.now()-lastClicked > 500){
+                    for(let i=0;i<self.sq;i++){
+                      self.button_status[i].last_clicked=timestamp-900;
+                    }
+                    self.onSequenceData.seq_lastDisplay = timestamp+2000;
+                    self.start();
                   }
-                  self.onSequenceData.seq_lastDisplay = timestamp+2000;
-                  self.start();
                 }, 
                 color:color(COLOR.BTN),
                 pos: {x:width/2,y:height/2}
                },self);
+    new Button({txt:'Select color',
+                txtSize:width/30,
+                tcolor:color(COLOR.TEXT),
+                size:{x:width*0.2,y:height*0.075},
+                callback: function(id, caller, timestamp){
+                  self.colorMenu = true;
+                }, 
+                color:color(COLOR.BTN),
+                pos: {x:9*width/10,y:height/20}
+               },self);
+    }
+    else{
+      let x = 0;
+      let y = 0.2;
+      for(let pal of Object.entries(palette)){
+        let name = pal[0];
+        let col = pal[1];
+
+        fill(color(col.BACKGROUND));
+        rect((0.5+x)*width/4,(0.4+y)*height/4, width*0.18,height*0.18);
+        
+        new Button({txt:"Select",
+                    id:name,
+                    txtSize:width/30,
+                    tcolor:color(col.TEXT),
+                    size:{x:width*0.1,y:height*0.1},
+                    callback: function(id, caller, timestamp){
+                      COLOR = palette[id];
+                      storeItem('palette', palette[id]);
+                      self.colorMenu = false;
+                      self.onSequenceData.seq_lastDisplay = timestamp+500;
+                    }, 
+                    color:color(col.BTN),
+                    pos: {x:(0.5+x)*width/4,y:(0.5+y)*height/4}
+                  },self);
+
+        fill(color(col.CLICK));
+        rect((0.5+x)*width/4,(0.64+y)*height/4, width*0.1,height*0.03);
+
+        fill(color(col.HIGHLIGHT));
+        rect((0.5+x)*width/4,(0.15+y)*height/4, width*0.1,height*0.03);
+        
+        fill(255,255,255);
+        textSize(width/40);
+        text("Highlight",(0.5+x)*width/4,(0.19+y)*height/4);
+        
+        
+        x++;
+        if(x>4){
+          x = 0;
+          y++;
+        }
+      }
+    }
   }
 
   click(x, y){
@@ -280,6 +339,7 @@ class Game{
                     if(!self.button_status[i].clicked){
                       if(timestamp - self.button_status[i].last_clicked > self.onSequenceData.btn_debounce){
                         self.button_status[i].last_clicked = timestamp;
+                        self.onSequenceData.seq_lastDisplay = timestamp;
                         self.button_status[i].clicked = true;
                         self.player_sequence.push(id);
                       }
@@ -306,7 +366,10 @@ class Game{
                 tcolor:color(COLOR.TEXT),
                 size:{x:width*0.3,y:height*0.1},
                 callback: function(id, caller, timestamp){
-                  game = new Game();
+                  if(Date.now()-self.onSequenceData.seq_lastDisplay > 500){
+                    game = new Game();
+                    lastClicked = Date.now();
+                  }
                 }, 
                 color: color(COLOR.BTN),
                 pos: {x:width/2,y:height/2}
@@ -346,6 +409,9 @@ function setup(){
   let c_size = returnSize();
   canvas = createCanvas(c_size, c_size);
   canvas.parent('canvas_holder');
+
+  COLOR = getItem('palette') || palette[4549];
+  
   document.querySelector(':root').style.setProperty('--highlight', color(COLOR.HIGHLIGHT).toString('#rrggbb'));
   document.querySelector(':root').style.setProperty('--background', color(COLOR.BACKGROUND).toString('#rrggbb'));
 }
