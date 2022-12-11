@@ -78,6 +78,13 @@ class Game{
   menu(self){
     document.getElementById("memorize").className = "";
     document.getElementById("repeat").className = "";
+    noFill();
+    stroke(255);
+    strokeWeight(3);
+    rectMode(CENTER);
+    rect(width/2,height/2,width,height);
+    strokeWeight(0.5);
+    stroke(0);
     new Button({txt:'Start',
                 txtSize:width/20,
                 tcolor:COLOR.TEXT,
@@ -86,7 +93,7 @@ class Game{
                   for(let i=0;i<self.sq;i++){
                     self.button_status[i].last_clicked=timestamp-900;
                   }
-                  self.onSequenceData.seq_lastDisplay = timestamp;
+                  self.onSequenceData.seq_lastDisplay = timestamp+2000;
                   self.start();
                 }, 
                 color:COLOR.B,
@@ -198,6 +205,7 @@ class Game{
     let txtSize = 3*width/20;
     textSize(txtSize);
     fill(objRGB(COLOR.TEXT));
+    stroke(0);
     text(self.score,width/2,(height/2)+txtSize/2);
     
   }
