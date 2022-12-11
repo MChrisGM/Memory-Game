@@ -69,6 +69,7 @@ class Game{
   
   menu(self){
     new Button({txt:'Start',
+                txtSize:width/20,
                 size:{x:width*0.2,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   for(let i=0;i<self.sq;i++){
@@ -178,14 +179,16 @@ class Game{
     }
 
     textAlign(CENTER);
-    textSize(30);
+    let txtSize = 3*width/20;
+    textSize(txtSize);
     fill(0);
-    text(self.score,width/2,(height/2)+15);
+    text(self.score,width/2,(height/2)+txtSize/2);
     
   }
   
   finished(self){
     new Button({txt:'Play Again?',
+                txtSize:width/20,
                 size:{x:width*0.3,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   game = new Game();
@@ -195,7 +198,7 @@ class Game{
                },self);
     
     textAlign(CENTER);
-    textSize(30);
+    textSize(1.5*width/20);
     fill(255);
     text("Your score: "+self.score,width/2,(height/3)+15);
   }
@@ -227,9 +230,9 @@ let game = new Game(3, 3);
 function setup(){
   let c_size = 0;
   if(windowWidth>windowHeight){
-    c_size = windowHeight/2;
+    c_size = windowHeight/1.5;
   }else{
-    c_size = windowWidth/2;
+    c_size = windowWidth/1.5;
   }
   canvas = createCanvas(c_size, c_size);
   canvas.parent('canvas_holder');
