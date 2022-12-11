@@ -297,15 +297,15 @@ function objRGB(obj){
 }
 
 function returnSize(){
-    let scale = 1.8;
-    if(isMobile){
-        scale = 1.2;
-    }
+  let scale = 1.8;
+  if(isMobile()){
+      scale = 1.2;
+  }
   let c_size = 0;
   if(windowWidth>windowHeight){
     c_size = windowHeight/scale;
   }else{
     c_size = windowWidth/scale;
   }
-    return c_size;
+  return c_size;
 }
