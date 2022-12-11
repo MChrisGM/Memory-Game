@@ -26,7 +26,7 @@ class Button{
     fill(tcolor.r,tcolor.g,tcolor.b);
     textAlign(CENTER);
     textSize(txtSize);
-    text(txt,pos.x,pos.y);
+    text(txt,pos.x,pos.y+txtSize/2);
     if(mouseX > pos.x - size.x/2 && mouseX < pos.x+size.x/2){
       if(mouseY > pos.y - size.y/2 && mouseY < pos.y+size.y/2){
         if(mouseIsPressed){
@@ -38,7 +38,10 @@ class Button{
 }
 
 class Game{
-  constructor(){
+  constructor(x, y){
+    this.sq = x*y;
+    this.rows = y;
+    this.cols = x;
     this.current_mode = MENU;
     this.modes = {
       [MENU] : this.menu,
@@ -56,18 +59,28 @@ class Game{
       seq_delay: 500,
       seq_playTime:0,
     };
+    this.button_status = [];
+    for(let i=0;i<this.sq;i++){
+      this.button_status.push({clicked: false, last_clicked: 0});
+    }
   }
   
   menu(self){
     new Button({txt:'Start',
                 size:{x:width*0.2,y:height*0.1},
                 callback: function(id, caller, timestamp){
+                  for(let i=0;i<self.sq;i++){
+                    self.button_status[i].last_clicked=timestamp-900;
+                  }
                   self.start();
-                  console.log(timestamp);
                 }, 
                 color:{r:3, g:169, b:252},
                 pos: {x:width/2,y:height/2}
                },self);
+  }
+
+  click(x,y){
+    this.button_status[(y*this.rows)+x].last_clicked=Date.now();
   }
   
   playing_sequence(self){
@@ -88,7 +101,41 @@ class Game{
         break;
       default:
         break;
-    }   
+    }
+    for(let i=0;i<self.sq;i++){
+      let indx = i%self.cols;
+      let indy = Math.floor(i/self.rows);
+
+      if (Date.now() - self.button_status[i].last_clicked > self.onSequenceData.seq_delay){
+        self.button_status[i].clicked = false;
+      }else{
+        self.button_status[i].clicked = true;
+      }
+
+      let c = {r:3, g:169, b:252};
+      if(self.button_status[i].clicked){
+        c = {r:255, g:255, b:255};
+      }
+      
+      new Button({
+                id: i,
+                // txt:indx+","+indy,
+                size:{x:(width/self.cols)-(width/(100*self.cols)),y:(height/self.rows)-(height/(100*self.rows))},
+                callback: function(id, caller, timestamp){
+                  if(!self.onSequenceData.seq_playing){
+                    if(!self.button_status[i].clicked){
+                      if(timestamp - self.button_status[i].last_clicked > 250){
+                        console.log(id, timestamp);
+                        self.button_status[i].last_clicked = timestamp;
+                        self.button_status[i].clicked = true;
+                      }
+                    }
+                  }
+                }, 
+                color: c,
+                pos: {x:(0.5+indx)*width/self.cols,y:(0.5+indy)*height/self.rows}
+               },self);
+    }
   }
   
   finished(self){
@@ -122,7 +169,7 @@ class Game{
   
 }
 
-let game = new Game();
+let game = new Game(3, 3);
 
 function setup(){
   let c_size = 0;

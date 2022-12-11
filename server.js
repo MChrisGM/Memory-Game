@@ -12,5 +12,5 @@ app.use(express.static('public'))
 
 app.listen(port, () => {
   // Code.....
-  console.log('Runing server at port: '+port);
+  console.log('Running server at port: '+port);
 })
