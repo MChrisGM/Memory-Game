@@ -126,6 +126,9 @@ class Game{
         self.score++;
       }
     }
+    if(this.player_sequence.length > this.sequence.length){
+      this.stop();
+    }
     this.onSequenceData.seq_playing = false;
   }
   
@@ -209,7 +212,7 @@ class Game{
   
 }
 
-let game = new Game(3, 3);
+let game = new Game(8, 8);
 
 function setup(){
   let c_size = 0;
@@ -242,14 +245,13 @@ function getRandomInt(max) {
 }
 
 function areEqual(array1, array2) {
-  if(array1.length > array2.length){
-    for(let i=0;i<array2.length-1;i++){
+  if(array1.length >= array2.length){
+    for(let i=0;i<array2.length;i++){
       if(array1[i] != array2[i]){
         return false;
       }
     }
   }
-  console.log("Equal:", array1, array2);
   return true;
 }
 
