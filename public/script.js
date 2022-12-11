@@ -26,7 +26,7 @@ class Button{
     fill(tcolor.r,tcolor.g,tcolor.b);
     textAlign(CENTER);
     textSize(txtSize);
-    text(txt,pos.x,pos.y+txtSize/2);
+    text(txt,pos.x,pos.y+Math.floor(txtSize/2)-1);
     if(mouseX > pos.x - size.x/2 && mouseX < pos.x+size.x/2){
       if(mouseY > pos.y - size.y/2 && mouseY < pos.y+size.y/2){
         if(mouseIsPressed){
@@ -39,9 +39,9 @@ class Button{
 
 class Game{
   constructor(x, y){
-    this.sq = x*y;
-    this.rows = y;
-    this.cols = x;
+    this.rows = y || 3;
+    this.cols = x || 3;
+    this.sq = this.cols*this.rows;
     this.score = 1;
     this.current_mode = MENU;
     this.modes = {
@@ -160,13 +160,11 @@ class Game{
       
       new Button({
                 id: i,
-                // txt:indx+","+indy,
                 size:{x:(width/self.cols)-(width/(100*self.cols)),y:(height/self.rows)-(height/(100*self.rows))},
                 callback: function(id, caller, timestamp){
                   if(!self.onSequenceData.seq_playing){
                     if(!self.button_status[i].clicked){
                       if(timestamp - self.button_status[i].last_clicked > 250){
-                        console.log(id, timestamp);
                         self.button_status[i].last_clicked = timestamp;
                         self.button_status[i].clicked = true;
                         self.player_sequence.push(id);
@@ -187,7 +185,19 @@ class Game{
   }
   
   finished(self){
+    new Button({txt:'Play Again?',
+                size:{x:width*0.3,y:height*0.1},
+                callback: function(id, caller, timestamp){
+                  game = new Game();
+                }, 
+                color:{r:3, g:169, b:252},
+                pos: {x:width/2,y:height/2}
+               },self);
     
+    textAlign(CENTER);
+    textSize(30);
+    fill(255);
+    text("Your score: "+self.score,width/2,(height/3)+15);
   }
   
   start(){
@@ -212,7 +222,7 @@ class Game{
   
 }
 
-let game = new Game(8, 8);
+let game = new Game(3, 3);
 
 function setup(){
   let c_size = 0;
