@@ -57,7 +57,8 @@ class Game{
       seq_length: 0,
       seq_lastDisplay: 0,
       seq_delay: 500,
-      seq_playTime:0,
+      seq_playTime:1000,
+      player_completed: true,
     };
     this.button_status = [];
     for(let i=0;i<this.sq;i++){
@@ -72,6 +73,7 @@ class Game{
                   for(let i=0;i<self.sq;i++){
                     self.button_status[i].last_clicked=timestamp-900;
                   }
+                  self.onSequenceData.seq_lastDisplay = timestamp;
                   self.start();
                 }, 
                 color:{r:3, g:169, b:252},
@@ -79,16 +81,50 @@ class Game{
                },self);
   }
 
-  click(x,y){
-    this.button_status[(y*this.rows)+x].last_clicked=Date.now();
+  click(x, y){
+    if(x>=0 && y>=0){
+      this.button_status[(y*this.rows)+x].last_clicked=Date.now();
+    }else if (x>=0){
+      this.button_status[x].last_clicked=Date.now();
+    }
   }
   
   playing_sequence(self){
-    
+    if(self.onSequenceData.player_completed){
+      self.sequence.push(getRandomInt(self.sq));
+      self.onSequenceData.seq_length++;
+      self.onSequenceData.player_completed = false;
+    }
+    self.onSequenceData.seq_playing = true;
+    let idx = self.onSequenceData.seq_index;
+    let len = self.onSequenceData.seq_length;
+    let last = self.onSequenceData.seq_lastDisplay;
+    let delay = self.onSequenceData.seq_delay;
+    let playTime = self.onSequenceData.seq_playTime;
+    if(Date.now() - last > playTime){
+      if(len-1 >= idx){
+        this.click(self.sequence[idx]);
+        self.onSequenceData.seq_index++;
+        self.onSequenceData.seq_lastDisplay = Date.now();
+      }else{
+        self.sequence_turn = PLAYER;
+      }
+    }
   }
   
   playing_player(self){
-    
+    if(!areEqual(this.sequence, this.player_sequence)){
+      this.stop();
+    }else{
+      if(exactlyEqual(this.sequence, this.player_sequence)){
+        self.sequence_turn = COMP;
+        self.onSequenceData.player_completed = true;
+        self.onSequenceData.seq_index = 0;
+        self.player_sequence = [];
+        self.onSequenceData.seq_lastDisplay = Date.now();
+      }
+    }
+    this.onSequenceData.seq_playing = false;
   }
   
   playing(self){
@@ -128,6 +164,7 @@ class Game{
                         console.log(id, timestamp);
                         self.button_status[i].last_clicked = timestamp;
                         self.button_status[i].clicked = true;
+                        self.player_sequence.push(id);
                       }
                     }
                   }
@@ -150,20 +187,15 @@ class Game{
   
   stop(){
     if(this.current_mode == PLAYING){
-      this.current_mode = MENU;
+      this.current_mode = FINISHED;
     }
   }
-  
-  check(){
     
-  }
-  
   run_mode(mode){
     this.modes[mode](this);
   }
   
   loop(){
-    this.check();
     this.run_mode(this.current_mode);
   }
   
@@ -195,4 +227,34 @@ function windowResized(){
     c_size = windowWidth/2;
   }
   resizeCanvas(c_size, c_size);
+}
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
+function areEqual(array1, array2) {
+  if(array1.length > array2.length){
+    for(let i=0;i<array2.length-1;i++){
+      if(array1[i] != array2[i]){
+        return false;
+      }
+    }
+  }
+  console.log("Equal:", array1, array2);
+  return true;
+}
+
+function exactlyEqual(array1, array2) {
+  if (array1.length === array2.length) {
+    return array1.every((element, index) => {
+      if (element === array2[index]) {
+        return true;
+      }
+
+      return false;
+    });
+  }
+
+  return false;
 }
