@@ -1,4 +1,5 @@
 let canvas;
+let monoSynth;
 
 const COMP = 'computer';
 const PLAYER = 'player';
@@ -95,6 +96,16 @@ const palette = {
 var COLOR;
 let lastClicked = 0;
 
+const noteDict = {
+  0:'C',
+  1:'E',
+  2:'G',
+  3:'C',
+  4:'E',
+  5:'G',
+  6:'C',
+}
+
 class Button{
   constructor(args, caller){
 
@@ -177,6 +188,7 @@ class Game{
                 size:{x:width*0.2,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   if(Date.now()-lastClicked > 500){
+                    userStartAudio();
                     for(let i=0;i<self.sq;i++){
                       self.button_status[i].last_clicked=timestamp-900;
                     }
@@ -244,11 +256,25 @@ class Game{
   }
 
   click(x, y){
+    let xidx;
+    let yidx;
+    
     if(x>=0 && y>=0){
       this.button_status[(y*this.rows)+x].last_clicked=Date.now();
+      xidx = x;
+      yidx = y;
     }else if (x>=0){
       this.button_status[x].last_clicked=Date.now();
+      xidx = x%this.cols;
+      yidx = Math.floor(x/this.rows);
     }
+    let note = noteDict[xidx]+''+(5-yidx);
+    let velocity = 0.3/(3-yidx);
+    let time = 0;
+    let dur = 1/3;
+        
+    monoSynth.play(note, velocity, time, dur);
+    
   }
   
   playing_sequence(self){
@@ -342,6 +368,15 @@ class Game{
                         self.onSequenceData.seq_lastDisplay = timestamp;
                         self.button_status[i].clicked = true;
                         self.player_sequence.push(id);
+
+                        
+                        let note = noteDict[indx]+''+(5-indy);
+                        let velocity = 0.3/(3-indy);
+                        let time = 0;
+                        let dur = 1/3;
+                            
+                        monoSynth.play(note, velocity, time, dur);
+                        
                       }
                     }
                   }
@@ -411,6 +446,8 @@ function setup(){
   canvas.parent('canvas_holder');
 
   COLOR = getItem('palette') || palette[4549];
+
+  monoSynth = new p5.MonoSynth();
   
   document.querySelector(':root').style.setProperty('--highlight', color(COLOR.HIGHLIGHT).toString('#rrggbb'));
   document.querySelector(':root').style.setProperty('--background', color(COLOR.BACKGROUND).toString('#rrggbb'));
