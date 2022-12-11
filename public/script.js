@@ -6,6 +6,14 @@ const MENU = 'menu';
 const PLAYING = 'playing';
 const FINISHED = 'finished';
 
+const COLOR = {
+  BACKGROUND:{r:17, g:27, b:30},
+  A:{r:47, g:76, b:88},
+  B:{r:99, g:165, b:131},
+  C:{r:110, g:147, b:214},
+  TEXT:{r:228, g:219, b:217},
+};
+
 class Button{
   constructor(args, caller){
 
@@ -26,7 +34,7 @@ class Button{
     fill(tcolor.r,tcolor.g,tcolor.b);
     textAlign(CENTER);
     textSize(txtSize);
-    text(txt,pos.x,pos.y+Math.floor(txtSize/2)-1);
+    text(txt,pos.x,pos.y+Math.floor(txtSize/2)-3);
     if(mouseX > pos.x - size.x/2 && mouseX < pos.x+size.x/2){
       if(mouseY > pos.y - size.y/2 && mouseY < pos.y+size.y/2){
         if(mouseIsPressed){
@@ -70,6 +78,7 @@ class Game{
   menu(self){
     new Button({txt:'Start',
                 txtSize:width/20,
+                tcolor:COLOR.TEXT,
                 size:{x:width*0.2,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   for(let i=0;i<self.sq;i++){
@@ -78,7 +87,7 @@ class Game{
                   self.onSequenceData.seq_lastDisplay = timestamp;
                   self.start();
                 }, 
-                color:{r:3, g:169, b:252},
+                color:COLOR.B,
                 pos: {x:width/2,y:height/2}
                },self);
   }
@@ -154,7 +163,7 @@ class Game{
         self.button_status[i].clicked = true;
       }
 
-      let c = {r:3, g:169, b:252};
+      let c = COLOR.C;
       if(self.button_status[i].clicked){
         c = {r:255, g:255, b:255};
       }
@@ -162,6 +171,7 @@ class Game{
       new Button({
                 id: i,
                 size:{x:(width/self.cols)-(width/(100*self.cols)),y:(height/self.rows)-(height/(100*self.rows))},
+                tcolor:COLOR.TEXT,
                 callback: function(id, caller, timestamp){
                   if(!self.onSequenceData.seq_playing){
                     if(!self.button_status[i].clicked){
@@ -181,19 +191,20 @@ class Game{
     textAlign(CENTER);
     let txtSize = 3*width/20;
     textSize(txtSize);
-    fill(0);
+    fill(objRGB(COLOR.TEXT));
     text(self.score,width/2,(height/2)+txtSize/2);
     
   }
   
   finished(self){
-    new Button({txt:'Play Again?',
+    new Button({txt:'Play Again',
                 txtSize:width/20,
+                tcolor:{r:228, g:219, b:217},
                 size:{x:width*0.3,y:height*0.1},
                 callback: function(id, caller, timestamp){
                   game = new Game();
                 }, 
-                color:{r:3, g:169, b:252},
+                color:{r:99, g:165, b:131},
                 pos: {x:width/2,y:height/2}
                },self);
     
@@ -228,28 +239,18 @@ class Game{
 let game = new Game(3, 3);
 
 function setup(){
-  let c_size = 0;
-  if(windowWidth>windowHeight){
-    c_size = windowHeight/1.5;
-  }else{
-    c_size = windowWidth/1.5;
-  }
+  let c_size = returnSize();
   canvas = createCanvas(c_size, c_size);
   canvas.parent('canvas_holder');
 }
 
 function draw(){
-  background(51);
+  background(objRGB(COLOR.BACKGROUND));
   game.loop();
 }
 
 function windowResized(){
-  let c_size = 0;
-  if(windowWidth>windowHeight){
-    c_size = windowHeight/2;
-  }else{
-    c_size = windowWidth/2;
-  }
+  let c_size = returnSize();
   resizeCanvas(c_size, c_size);
 }
 
@@ -280,4 +281,24 @@ function exactlyEqual(array1, array2) {
   }
 
   return false;
+}
+
+const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+function objRGB(obj){
+  return color(obj.r,obj.g,obj.b);
+}
+
+function returnSize(){
+    let scale = 1.8;
+    if(isMobile){
+        scale = 1.2;
+    }
+  let c_size = 0;
+  if(windowWidth>windowHeight){
+    c_size = windowHeight/scale;
+  }else{
+    c_size = windowWidth/scale;
+  }
+    return c_size;
 }
